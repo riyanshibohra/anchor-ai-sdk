@@ -4,8 +4,7 @@
  * Opt-in: needs a Docker daemon and an image with bash + git + coreutils
  * (any toolchain image you already have):
  *
- *   ANCHOR_DOCKER_TEST_IMAGE=<your-image> \
- *     npm test -w packages/core -- docker-sandbox
+ *   ANCHOR_DOCKER_TEST_IMAGE=<your-image> npm test -- docker-sandbox
  *
  * Docker Desktop on macOS is not on PATH by default; point ANCHOR_DOCKER_BIN
  * at the CLI when needed. Skips silently when either is missing.

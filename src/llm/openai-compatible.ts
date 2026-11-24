@@ -231,6 +231,13 @@ export class OpenAICompatibleClient implements LLMClient {
         if (!retryable) throw new LLMApiError(candidate.status, excerpt);
         lastError = new LLMApiError(candidate.status, excerpt);
       } catch (err) {
+        // A caller's cancel is a decision, not a transient blip: retrying it
+        // burns the backoff ladder and sends requests the user cancelled.
+        if (
+          callOpts.signal?.aborted ||
+          (err instanceof Error && err.name === "AbortError")
+        )
+          throw err;
         if (
           err instanceof LLMApiError &&
           err.status !== 429 &&

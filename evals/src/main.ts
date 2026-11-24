@@ -96,9 +96,16 @@ if (llmName !== "openrouter" && llmName !== "parasail") {
   process.exit(1);
 }
 const parasail = llmName === "parasail";
-const model = String(
-  args.get("model") ?? (parasail ? "zai-org/GLM-5.3" : cfg.llm.model),
-);
+// No String() coercion: an unset model must stay undefined so the guard below
+// fires instead of the run asking the provider for a model called "undefined".
+const modelArg = args.get("model");
+const model =
+  (typeof modelArg === "string" ? modelArg : undefined) ??
+  (parasail ? "zai-org/GLM-5.3" : cfg.llm.model);
+if (!model) {
+  say("no model: pass --model or set LLM_MODEL");
+  process.exit(1);
+}
 const baseUrl = parasail ? "https://api.parasail.io/v1" : cfg.llm.baseUrl;
 const apiKey = parasail
   ? process.env.PARASAIL_API_KEY || undefined
