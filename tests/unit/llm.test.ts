@@ -314,6 +314,28 @@ describe("OpenAICompatibleClient", () => {
     expect(calls).toBe(1);
   });
 
+  it("honours an aborted signal instead of retrying the abort", async () => {
+    let calls = 0;
+    const fetchImpl: typeof fetch = async (_url, init) => {
+      calls += 1;
+      const signal = (init as RequestInit | undefined)?.signal;
+      if (!signal?.aborted) throw new Error("expected an aborted signal");
+      throw new DOMException("This operation was aborted", "AbortError");
+    };
+    const controller = new AbortController();
+    controller.abort();
+    const started = Date.now();
+    await expect(
+      make(fetchImpl, { maxRetries: 3, retryBaseDelayMs: 100 }).complete(
+        { messages: [{ role: "user", content: "ping" }] },
+        { signal: controller.signal },
+      ),
+    ).rejects.toThrow(/abort/i);
+    // Retrying a cancel would take 100+200+400ms of backoff and 4 attempts.
+    expect(calls).toBe(1);
+    expect(Date.now() - started).toBeLessThan(400);
+  });
+
   it("gives up after maxRetries on persistent 5xx", async () => {
     let calls = 0;
     const fetchImpl: typeof fetch = async () => {

@@ -1,7 +1,7 @@
 /**
  * Genericity guards — the package must stay consumer-neutral. These are
  * executable rules, not prose: if one fires, something product-shaped leaked
- * into `packages/core`.
+ * into `src/`.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
